@@ -1,0 +1,14 @@
+{
+  "name": "generate_qr_code",
+  "trigger_description": "Generate a QR code for a given URL and return it as a base64-encoded PNG image.",
+  "references": {
+    "recipe_id": {
+      "type": "recipe",
+      "id": {
+        "zip_name": "generate_qr_code.recipe.json",
+        "name": "generate_qr_code",
+        "folder": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "workato-qr-mcp",
+  "description": "QR code generator — accepts a URL and optional color, returns a base64 PNG",
+  "auth_type": "token",
+  "tools_type": "project_assets",
+  "tools": [
+    {
+      "tool": "ref_0",
+      "description": "",
+      "vua_required": false
+    }
+  ],
+  "references": {
+    "ref_0": {
+      "type": "agentic_skill",
+      "id": {
+        "zip_name": "generate_qr_code.agentic_skill.json",
+        "name": "generate_qr_code",
+        "folder": ""
+      }
+    }
+  }
+}

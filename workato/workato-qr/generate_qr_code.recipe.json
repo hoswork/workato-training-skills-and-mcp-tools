@@ -1,0 +1,250 @@
+{
+  "name": "generate_qr_code",
+  "version": 1,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "as": "qr_trigger_109f3258",
+    "number": 0,
+    "keyword": "trigger",
+    "provider": "workato_skill",
+    "name": "start_workflow",
+    "skip": false,
+    "uuid": "447a19e9-6ba5-4f0c-9e6d-13b047bf49ba",
+    "unfinished": false,
+    "input": {
+      "requires_user_confirmation": "false",
+      "parameters_schema_json": "[{\"name\": \"url\", \"type\": \"string\", \"label\": \"URL to encode\", \"control_type\": \"url\", \"optional\": false}, {\"name\": \"color\", \"type\": \"string\", \"label\": \"Foreground color (hex, e.g. 000000)\", \"control_type\": \"text\", \"optional\": true}]",
+      "result_schema_json": "[{\"name\": \"image_base64\", \"type\": \"string\", \"label\": \"PNG image (base64)\", \"control_type\": \"text\"}, {\"name\": \"mime_type\", \"type\": \"string\", \"label\": \"MIME type\", \"control_type\": \"text\"}, {\"name\": \"width\", \"type\": \"integer\", \"label\": \"Width (px)\", \"control_type\": \"number\", \"parse_output\": \"integer_conversion\"}, {\"name\": \"height\", \"type\": \"integer\", \"label\": \"Height (px)\", \"control_type\": \"number\", \"parse_output\": \"integer_conversion\"}, {\"name\": \"url\", \"type\": \"string\", \"label\": \"Input URL\", \"control_type\": \"text\"}]"
+    },
+    "extended_input_schema": [
+
+    ],
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "type": "object",
+        "name": "parameters",
+        "extends_schema": false,
+        "properties": [
+          {
+            "control_type": "url",
+            "label": "URL to encode",
+            "type": "string",
+            "name": "url",
+            "extends_schema": false
+          },
+          {
+            "control_type": "text",
+            "label": "Foreground color (hex)",
+            "type": "string",
+            "name": "color",
+            "optional": true,
+            "extends_schema": false
+          }
+        ]
+      }
+    ],
+    "block": [
+      {
+        "as": "py_qr_8e583df3",
+        "number": 1,
+        "keyword": "action",
+        "provider": "py_eval",
+        "name": "invoke_custom_py_code",
+        "skip": false,
+        "comment": "Generate QR code via api.qrserver.com, return base64 PNG",
+        "uuid": "caded422-a207-4b83-9699-63809005a2f8",
+        "input": {
+          "name": "Generate QR code",
+          "code": "import urllib.request\nimport urllib.parse\nimport base64\n\ndef main(input):\n    url = (input.get('url') or '').strip()\n    if not url:\n        raise ValueError('url is required')\n    color = (input.get('color') or '000000').lstrip('#').strip() or '000000'\n    size = 300\n    api_url = (\n        'https://api.qrserver.com/v1/create-qr-code/'\n        '?size=' + str(size) + 'x' + str(size) +\n        '&data=' + urllib.parse.quote(url, safe='') +\n        '&color=' + color +\n        '&bgcolor=ffffff&format=png&margin=10&qzone=1'\n    )\n    req = urllib.request.Request(api_url, headers={'User-Agent': 'Workato-QR/1.0'})\n    with urllib.request.urlopen(req, timeout=15) as resp:\n        png_bytes = resp.read()\n    return {\n        'image_base64': base64.b64encode(png_bytes).decode('ascii'),\n        'mime_type': 'image/png',\n        'width': size,\n        'height': size,\n        'url': url\n    }\n",
+          "code_input": {
+            "schema": "[{\"name\": \"url\", \"type\": \"string\", \"label\": \"URL\", \"control_type\": \"text\", \"optional\": false}, {\"name\": \"color\", \"type\": \"string\", \"label\": \"Color\", \"control_type\": \"text\", \"optional\": true}]",
+            "data": {
+              "url": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"workato_skill\", \"line\": \"qr_trigger_109f3258\", \"path\": [\"parameters\", \"url\"]}')}",
+              "color": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"workato_skill\", \"line\": \"qr_trigger_109f3258\", \"path\": [\"parameters\", \"color\"]}')}"
+            }
+          },
+          "code_output_schema_json": "[{\"name\": \"image_base64\", \"type\": \"string\", \"label\": \"Image base64\", \"control_type\": \"text\"}, {\"name\": \"mime_type\", \"type\": \"string\", \"label\": \"MIME type\", \"control_type\": \"text\"}, {\"name\": \"width\", \"type\": \"integer\", \"label\": \"Width\", \"control_type\": \"integer\", \"parse_output\": \"integer_conversion\"}, {\"name\": \"height\", \"type\": \"integer\", \"label\": \"Height\", \"control_type\": \"integer\", \"parse_output\": \"integer_conversion\"}, {\"name\": \"url\", \"type\": \"string\", \"label\": \"URL\", \"control_type\": \"text\"}]"
+        },
+        "extended_input_schema": [
+          {
+            "control_type": "form-schema-builder",
+            "label": "Input fields",
+            "type": "object",
+            "name": "code_input",
+            "optional": true,
+            "sticky": true,
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Schema",
+                "type": "string",
+                "name": "schema",
+                "extends_schema": true
+              },
+              {
+                "label": "Data",
+                "type": "object",
+                "name": "data",
+                "extends_schema": false,
+                "properties": [
+                  {
+                    "control_type": "text",
+                    "label": "URL",
+                    "type": "string",
+                    "name": "url",
+                    "optional": false,
+                    "extends_schema": false
+                  },
+                  {
+                    "control_type": "text",
+                    "label": "Color",
+                    "type": "string",
+                    "name": "color",
+                    "optional": true,
+                    "extends_schema": false
+                  }
+                ]
+              }
+            ],
+            "override": true
+          }
+        ],
+        "extended_output_schema": [
+          {
+            "label": "Output",
+            "type": "object",
+            "name": "output",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Image base64",
+                "type": "string",
+                "name": "image_base64",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "MIME type",
+                "type": "string",
+                "name": "mime_type",
+                "extends_schema": false
+              },
+              {
+                "control_type": "integer",
+                "label": "Width",
+                "type": "integer",
+                "name": "width",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "integer",
+                "label": "Height",
+                "type": "integer",
+                "name": "height",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "text",
+                "label": "URL",
+                "type": "string",
+                "name": "url",
+                "extends_schema": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "as": "return_10969353",
+        "number": 2,
+        "keyword": "action",
+        "provider": "workato_skill",
+        "name": "workflow_return_result",
+        "skip": false,
+        "uuid": "0aa27370-7cb4-45ac-bbde-8d2cb419d511",
+        "input": {
+          "result": {
+            "image_base64": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"py_eval\", \"line\": \"py_qr_8e583df3\", \"path\": [\"output\", \"image_base64\"]}')}",
+            "mime_type": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"py_eval\", \"line\": \"py_qr_8e583df3\", \"path\": [\"output\", \"mime_type\"]}')}",
+            "width": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"py_eval\", \"line\": \"py_qr_8e583df3\", \"path\": [\"output\", \"width\"]}')}",
+            "height": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"py_eval\", \"line\": \"py_qr_8e583df3\", \"path\": [\"output\", \"height\"]}')}",
+            "url": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"py_eval\", \"line\": \"py_qr_8e583df3\", \"path\": [\"output\", \"url\"]}')}"
+          }
+        },
+        "extended_input_schema": [
+          {
+            "label": "Response",
+            "type": "object",
+            "name": "result",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Image (base64)",
+                "type": "string",
+                "name": "image_base64",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "MIME type",
+                "type": "string",
+                "name": "mime_type",
+                "extends_schema": false
+              },
+              {
+                "control_type": "integer",
+                "label": "Width",
+                "type": "integer",
+                "name": "width",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "integer",
+                "label": "Height",
+                "type": "integer",
+                "name": "height",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "text",
+                "label": "URL",
+                "type": "string",
+                "name": "url",
+                "extends_schema": false
+              }
+            ]
+          }
+        ],
+        "extended_output_schema": [
+
+        ]
+      }
+    ]
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_skill",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "py_eval",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_skill",
+      "account_id": null
+    }
+  ]
+}
