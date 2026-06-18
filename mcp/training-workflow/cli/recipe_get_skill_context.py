@@ -22,6 +22,39 @@ SKILL_CONTEXTS = {
         "quality_gates": "the-once-over invoked in gate mode after each conversation. Single pillar fail = block. Iterate until clean before writing output file and closing conversation.",
         "resume_pattern": "Say 'resume'. Claude reads log.md CURRENT STATE and picks up without re-explanation."
     },
+    "brief-me": {
+    "description": "1-2 page Trainer Summary for a named customer training engagement.",
+    "surface": "Claude Desktop Cowork or Chat \u2014 requires a Claude Desktop Project per engagement.",
+    "project_instructions": "Engagement: [Account] \u2014 [Course], [Date]\nETT ticket: [link]\nDrive folder: [link]\nbrief-me skill active.",
+    "file_structure": "Output: [Account] - Trainer Summary.md (and .html on request). Save to Project folder.",
+    "mcp_prerequisites": {
+        "Atlassian": "ETT ticket",
+        "Google Drive": "Training proposal",
+        "Enterprise Data (Snowflake)": "Production footprint",
+        "Gong": "Call recordings",
+        "Gmail": "Email timeline",
+        "Slack": "#int_ channel + CSM signals"
+    },
+    "steps": [
+        "step-1",
+        "step-2",
+        "step-3",
+        "step-4",
+        "step-5",
+        "step-6",
+        "step-7",
+        "step-8",
+        "step-9",
+        "step-10"
+    ],
+    "references": [
+        "ref-connector-catalog",
+        "ref-data-queries",
+        "ref-ett-ticket-structure",
+        "ref-output-spec"
+    ],
+    "note": "brief-me is a consumer skill. Training-workflow MCP serves its prompts and reference docs only \u2014 not its data sources."
+},
     "wow-plan": {
         "description": "1-day WoW workshop course planning using Amazon Working Backwards.",
         "surface": "Claude Desktop Cowork or Chat — requires a Claude Desktop Project per course.",
