@@ -1,0 +1,269 @@
+{
+  "name": "format_kahoot",
+  "description": "Validates and formats a question set into a Kahoot-importable XLSX file. Pass questions_json as a JSON array string. Returns file_base64 on success or errors array on validation failure.",
+  "version": 1,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "as": "start_workflow_ae3f",
+    "number": 0,
+    "keyword": "trigger",
+    "input": {
+      "requires_user_confirmation": "false",
+      "parameters_schema_json": "[{\"name\": \"questions_json\", \"type\": \"string\", \"label\": \"Questions (JSON array)\", \"control_type\": \"text\", \"optional\": false, \"hint\": \"JSON array. Each question: question, correct_answer, distractor_1/2/3, time_limit (5-120), points (0/1000/2000)\"}]",
+      "result_schema_json": "[{\"name\": \"valid\", \"type\": \"string\", \"label\": \"Valid (true/false)\", \"control_type\": \"text\"}, {\"name\": \"file_base64\", \"type\": \"string\", \"label\": \"XLSX file (base64)\", \"control_type\": \"text\"}, {\"name\": \"mime_type\", \"type\": \"string\", \"label\": \"MIME type\", \"control_type\": \"text\"}, {\"name\": \"filename\", \"type\": \"string\", \"label\": \"Filename\", \"control_type\": \"text\"}, {\"name\": \"errors\", \"type\": \"string\", \"label\": \"Validation errors (JSON)\", \"control_type\": \"text\"}]"
+    },
+    "provider": "workato_skill",
+    "name": "start_workflow",
+    "skip": false,
+    "uuid": "ae3f374e-32f8-4b78-8bd0-8b9fa1c9947c",
+    "extended_input_schema": [],
+    "extended_output_schema": [
+      {
+        "label": "Parameters",
+        "type": "object",
+        "name": "parameters",
+        "extends_schema": false,
+        "properties": [
+          {
+            "control_type": "text",
+            "label": "Questions JSON",
+            "type": "string",
+            "name": "questions_json",
+            "extends_schema": false
+          }
+        ]
+      }
+    ],
+    "block": [
+      {
+        "as": "py_format_fk01",
+        "number": 1,
+        "keyword": "action",
+        "provider": "py_eval",
+        "name": "invoke_custom_py_code",
+        "skip": false,
+        "comment": "Validate questions and generate Kahoot XLSX",
+        "uuid": "fk-py-0001-0000-0000-000000000001",
+        "input": {
+          "name": "Validate and generate XLSX",
+          "code": "import io, base64, json, openpyxl\n\n\ndef main(input):\n    # Parse questions JSON\n    try:\n        questions = json.loads(input.get(\"questions_json\", \"[]\"))\n    except Exception as e:\n        return {\n            \"valid\": \"false\",\n            \"file_base64\": \"\",\n            \"mime_type\": \"\",\n            \"filename\": \"\",\n            \"errors\": json.dumps([{\"question_index\": -1, \"field\": \"questions_json\", \"message\": f\"Invalid JSON: {e}\"}])\n        }\n\n    # Validate count\n    errors = []\n    if len(questions) < 1:\n        return {\n            \"valid\": \"false\", \"file_base64\": \"\", \"mime_type\": \"\", \"filename\": \"\",\n            \"errors\": json.dumps([{\"question_index\": -1, \"field\": \"questions_json\", \"message\": \"At least 1 question required\"}])\n        }\n    if len(questions) > 300:\n        return {\n            \"valid\": \"false\", \"file_base64\": \"\", \"mime_type\": \"\", \"filename\": \"\",\n            \"errors\": json.dumps([{\"question_index\": -1, \"field\": \"questions_json\", \"message\": \"Maximum 300 questions allowed\"}])\n        }\n\n    # Validate each question\n    seen = set()\n    for i, q in enumerate(questions):\n        q_text = q.get(\"question\", \"\")\n        if not q_text:\n            errors.append({\"question_index\": i, \"field\": \"question\", \"message\": \"Question text is required\"})\n        elif len(q_text) > 120:\n            errors.append({\"question_index\": i, \"field\": \"question\", \"message\": f\"Exceeds 120 chars ({len(q_text)})\"})\n        if q_text in seen:\n            errors.append({\"question_index\": i, \"field\": \"question\", \"message\": \"Duplicate question\"})\n        seen.add(q_text)\n\n        for field in [\"correct_answer\", \"distractor_1\", \"distractor_2\", \"distractor_3\"]:\n            val = q.get(field, \"\")\n            if not val:\n                errors.append({\"question_index\": i, \"field\": field, \"message\": f\"{field} is required\"})\n            elif len(str(val)) > 75:\n                errors.append({\"question_index\": i, \"field\": field, \"message\": f\"Exceeds 75 chars ({len(str(val))})\"})\n\n        tl = q.get(\"time_limit\", 20)\n        if not isinstance(tl, int) or not (5 <= tl <= 120):\n            errors.append({\"question_index\": i, \"field\": \"time_limit\", \"message\": \"Must be integer 5-120\"})\n\n        pts = q.get(\"points\", 1000)\n        if pts not in [0, 1000, 2000]:\n            errors.append({\"question_index\": i, \"field\": \"points\", \"message\": \"Must be 0, 1000, or 2000\"})\n\n    if errors:\n        return {\"valid\": \"false\", \"file_base64\": \"\", \"mime_type\": \"\", \"filename\": \"\", \"errors\": json.dumps(errors)}\n\n    # Generate XLSX\n    wb = openpyxl.Workbook()\n    ws = wb.active\n    ws.title = \"Kahoot Quiz\"\n    ws.append([\"Question\", \"Answer 1\", \"Answer 2\", \"Answer 3\", \"Answer 4\",\n               \"Time limit\", \"Correct answer\", \"Question type\"])\n\n    for q in questions:\n        ws.append([\n            q[\"question\"],\n            q[\"correct_answer\"],\n            q[\"distractor_1\"],\n            q[\"distractor_2\"],\n            q[\"distractor_3\"],\n            q.get(\"time_limit\", 20),\n            1,\n            \"Quiz\"\n        ])\n\n    buf = io.BytesIO()\n    wb.save(buf)\n\n    return {\n        \"valid\": \"true\",\n        \"file_base64\": base64.b64encode(buf.getvalue()).decode(\"ascii\"),\n        \"mime_type\": \"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet\",\n        \"filename\": \"kahoot-quiz.xlsx\",\n        \"errors\": \"\"\n    }\n",
+          "code_input": {
+            "schema": "[{\"name\": \"questions_json\", \"type\": \"string\", \"label\": \"Questions JSON\", \"control_type\": \"text\", \"optional\": false}]",
+            "data": {
+              "questions_json": "#{_dp('{\"pill_type\": \"output\", \"provider\": \"workato_skill\", \"line\": \"start_workflow_ae3f\", \"path\": [\"parameters\", \"questions_json\"]}')}"
+            }
+          },
+          "code_output_schema_json": "[{\"name\": \"valid\", \"type\": \"string\", \"label\": \"Valid\", \"control_type\": \"text\"}, {\"name\": \"file_base64\", \"type\": \"string\", \"label\": \"File base64\", \"control_type\": \"text\"}, {\"name\": \"mime_type\", \"type\": \"string\", \"label\": \"MIME type\", \"control_type\": \"text\"}, {\"name\": \"filename\", \"type\": \"string\", \"label\": \"Filename\", \"control_type\": \"text\"}, {\"name\": \"errors\", \"type\": \"string\", \"label\": \"Errors JSON\", \"control_type\": \"text\"}]"
+        },
+        "extended_input_schema": [
+          {
+            "control_type": "form-schema-builder",
+            "label": "Input fields",
+            "type": "object",
+            "name": "code_input",
+            "optional": true,
+            "sticky": true,
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Schema",
+                "type": "string",
+                "name": "schema",
+                "extends_schema": true
+              },
+              {
+                "label": "Data",
+                "type": "object",
+                "name": "data",
+                "extends_schema": false,
+                "properties": [
+                  {
+                    "control_type": "text",
+                    "label": "Questions JSON",
+                    "type": "string",
+                    "name": "questions_json",
+                    "optional": false,
+                    "extends_schema": false
+                  }
+                ]
+              }
+            ],
+            "override": true
+          }
+        ],
+        "extended_output_schema": [
+          {
+            "label": "Output",
+            "type": "object",
+            "name": "output",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "checkbox",
+                "label": "Valid",
+                "type": "boolean",
+                "name": "valid",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "File base64",
+                "type": "string",
+                "name": "file_base64",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "MIME type",
+                "type": "string",
+                "name": "mime_type",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Filename",
+                "type": "string",
+                "name": "filename",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Errors JSON",
+                "type": "string",
+                "name": "errors",
+                "extends_schema": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "as": "return_fk02",
+        "number": 2,
+        "keyword": "action",
+        "provider": "workato_skill",
+        "name": "workflow_return_result",
+        "skip": false,
+        "uuid": "fk-rt-0002-0000-0000-000000000002",
+        "input": {
+          "result": {
+            "valid": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"py_format_fk01\",\"path\":[\"output\",\"valid\"]}')}",
+            "file_base64": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"py_format_fk01\",\"path\":[\"output\",\"file_base64\"]}')}",
+            "mime_type": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"py_format_fk01\",\"path\":[\"output\",\"mime_type\"]}')}",
+            "filename": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"py_format_fk01\",\"path\":[\"output\",\"filename\"]}')}",
+            "errors": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"py_format_fk01\",\"path\":[\"output\",\"errors\"]}')}"
+          }
+        },
+        "extended_input_schema": [
+          {
+            "label": "Response",
+            "type": "object",
+            "name": "result",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Valid (true/false)",
+                "type": "string",
+                "name": "valid",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "XLSX file (base64)",
+                "type": "string",
+                "name": "file_base64",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "MIME type",
+                "type": "string",
+                "name": "mime_type",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Filename",
+                "type": "string",
+                "name": "filename",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Validation errors (JSON)",
+                "type": "string",
+                "name": "errors",
+                "extends_schema": false
+              }
+            ]
+          }
+        ],
+        "extended_output_schema": [
+          {
+            "label": "Response",
+            "type": "object",
+            "name": "result",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "text",
+                "label": "Valid (true/false)",
+                "type": "string",
+                "name": "valid",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "XLSX file (base64)",
+                "type": "string",
+                "name": "file_base64",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "MIME type",
+                "type": "string",
+                "name": "mime_type",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Filename",
+                "type": "string",
+                "name": "filename",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Validation errors (JSON)",
+                "type": "string",
+                "name": "errors",
+                "extends_schema": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_skill",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "py_eval",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "workato_skill",
+      "account_id": null
+    }
+  ]
+}

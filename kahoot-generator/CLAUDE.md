@@ -131,13 +131,24 @@ def main(input):
 
 **Note:** Validate `openpyxl` availability in Workato's Python environment before building. QR code project confirmed `numpy` and `PIL` — `openpyxl` is likely available but needs a test.
 
-## Workato project IDs
+## Workato project IDs (trial workspace)
 
 | Resource | Value |
 |---|---|
-| Workspace | TBD (production workspace) |
-| Project | TBD |
-| MCP server | TBD |
+| Workspace | id `2100000234` (trial) |
+| Project | `workato-qr` id `28820`, folder `42011` |
+| Recipe: get_kahoot_constraints | id `277619` |
+| Skill: get_kahoot_constraints | `skl-AaXspNnE-9FW8bP-AB` |
+| Recipe: format_kahoot | id `277620` |
+| Skill: format_kahoot | `skl-AaXspPNo-wTNR3h-AB` |
+| MCP server | `mcps-AaXt8Hzr-J8H-AB` |
+| MCP URL | `https://2601.apim.mcp.trial.workato.com` |
+
+**Note:** Not yet BT-managed — trial workspace only. BT path TBD.
+
+## Key lesson: extended_input_schema on workflow_return_result
+
+The `workflow_return_result` step MUST have populated `extended_input_schema` and `extended_output_schema` — not empty arrays. Without them, Workato's MCP layer returns `{"result":null}` even when the recipe runs successfully. The builder auto-generates these; hand-authored recipe JSON must include them explicitly. See `format_kahoot.recipe.json` for the pattern.
 
 ## Design decisions
 

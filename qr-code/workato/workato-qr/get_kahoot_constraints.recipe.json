@@ -1,0 +1,315 @@
+{
+  "name": "get_kahoot_constraints",
+  "description": "Returns Kahoot field limits and format requirements. Call before generating questions so the agent produces valid input on the first attempt.",
+  "version": 2,
+  "private": false,
+  "concurrency": 1,
+  "code": {
+    "as": "start_workflow_aaad",
+    "number": 0,
+    "keyword": "trigger",
+    "input": {
+      "requires_user_confirmation": "false",
+      "parameters_schema_json": "[]",
+      "result_schema_json": "[{\"name\":\"question_max_chars\",\"type\":\"integer\",\"label\":\"Question max chars\",\"control_type\":\"number\"},{\"name\":\"answer_max_chars\",\"type\":\"integer\",\"label\":\"Answer max chars\",\"control_type\":\"number\"},{\"name\":\"distractors_required\",\"type\":\"integer\",\"label\":\"Distractors required\",\"control_type\":\"number\"},{\"name\":\"questions_min\",\"type\":\"integer\",\"label\":\"Questions min\",\"control_type\":\"number\"},{\"name\":\"questions_max\",\"type\":\"integer\",\"label\":\"Questions max\",\"control_type\":\"number\"},{\"name\":\"time_limit_min\",\"type\":\"integer\",\"label\":\"Time limit min (seconds)\",\"control_type\":\"number\"},{\"name\":\"time_limit_max\",\"type\":\"integer\",\"label\":\"Time limit max (seconds)\",\"control_type\":\"number\"},{\"name\":\"valid_points\",\"type\":\"string\",\"label\":\"Valid points values\",\"control_type\":\"text\"},{\"name\":\"supported_formats\",\"type\":\"string\",\"label\":\"Supported output formats\",\"control_type\":\"text\"}]"
+    },
+    "provider": "workato_skill",
+    "name": "start_workflow",
+    "skip": false,
+    "uuid": "aaaddd8f-cff4-4ccf-aae4-ca0f549d55f5",
+    "extended_input_schema": [],
+    "extended_output_schema": [],
+    "block": [
+      {
+        "as": "invoke_custom_py_code_bbed",
+        "number": 1,
+        "keyword": "action",
+        "input": {
+          "name": "Kahoot constraints",
+          "code": "def main(input):\n    return {\n        \"question_max_chars\": 120,\n        \"answer_max_chars\": 75,\n        \"distractors_required\": 3,\n        \"questions_min\": 1,\n        \"questions_max\": 300,\n        \"time_limit_min\": 5,\n        \"time_limit_max\": 120,\n        \"valid_points\": \"0, 1000, 2000\",\n        \"supported_formats\": \"xlsx\"\n    }\n",
+          "code_output_schema_json": "[{\"name\":\"question_max_chars\",\"type\":\"integer\",\"label\":\"Question max chars\",\"control_type\":\"number\"},{\"name\":\"answer_max_chars\",\"type\":\"integer\",\"label\":\"Answer max chars\",\"control_type\":\"number\"},{\"name\":\"distractors_required\",\"type\":\"integer\",\"label\":\"Distractors required\",\"control_type\":\"number\"},{\"name\":\"questions_min\",\"type\":\"integer\",\"label\":\"Questions min\",\"control_type\":\"number\"},{\"name\":\"questions_max\",\"type\":\"integer\",\"label\":\"Questions max\",\"control_type\":\"number\"},{\"name\":\"time_limit_min\",\"type\":\"integer\",\"label\":\"Time limit min\",\"control_type\":\"number\"},{\"name\":\"time_limit_max\",\"type\":\"integer\",\"label\":\"Time limit max\",\"control_type\":\"number\"},{\"name\":\"valid_points\",\"type\":\"string\",\"label\":\"Valid points\",\"control_type\":\"text\"},{\"name\":\"supported_formats\",\"type\":\"string\",\"label\":\"Supported formats\",\"control_type\":\"text\"}]"
+        },
+        "provider": "py_eval",
+        "name": "invoke_custom_py_code",
+        "skip": false,
+        "comment": "Return Kahoot constraints",
+        "uuid": "bbed2d69-1e34-4072-b982-8e6006c12118",
+        "extended_input_schema": [],
+        "extended_output_schema": [
+          {
+            "label": "Output",
+            "type": "object",
+            "name": "output",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "number",
+                "label": "Question max chars",
+                "type": "integer",
+                "name": "question_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Answer max chars",
+                "type": "integer",
+                "name": "answer_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Distractors required",
+                "type": "integer",
+                "name": "distractors_required",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions min",
+                "type": "integer",
+                "name": "questions_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions max",
+                "type": "integer",
+                "name": "questions_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit min",
+                "type": "integer",
+                "name": "time_limit_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit max",
+                "type": "integer",
+                "name": "time_limit_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "text",
+                "label": "Valid points",
+                "type": "string",
+                "name": "valid_points",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Supported formats",
+                "type": "string",
+                "name": "supported_formats",
+                "extends_schema": false
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "as": "workflow_return_result_5e07",
+        "number": 2,
+        "keyword": "action",
+        "input": {
+          "result": {
+            "question_max_chars": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"question_max_chars\"]}')}",
+            "answer_max_chars": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"answer_max_chars\"]}')}",
+            "distractors_required": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"distractors_required\"]}')}",
+            "questions_min": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"questions_min\"]}')}",
+            "questions_max": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"questions_max\"]}')}",
+            "time_limit_min": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"time_limit_min\"]}')}",
+            "time_limit_max": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"time_limit_max\"]}')}",
+            "valid_points": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"valid_points\"]}')}",
+            "supported_formats": "#{_dp('{\"pill_type\":\"output\",\"provider\":\"py_eval\",\"line\":\"invoke_custom_py_code_bbed\",\"path\":[\"output\", \"supported_formats\"]}')}"
+          }
+        },
+        "provider": "workato_skill",
+        "name": "workflow_return_result",
+        "skip": false,
+        "uuid": "5e077028-c3a0-43f3-9b6f-4c4822d6e3be",
+        "extended_input_schema": [
+          {
+            "label": "Response",
+            "type": "object",
+            "name": "result",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "number",
+                "label": "Question max chars",
+                "type": "integer",
+                "name": "question_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Answer max chars",
+                "type": "integer",
+                "name": "answer_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Distractors required",
+                "type": "integer",
+                "name": "distractors_required",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions min",
+                "type": "integer",
+                "name": "questions_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions max",
+                "type": "integer",
+                "name": "questions_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit min (seconds)",
+                "type": "integer",
+                "name": "time_limit_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit max (seconds)",
+                "type": "integer",
+                "name": "time_limit_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "text",
+                "label": "Valid points values",
+                "type": "string",
+                "name": "valid_points",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Supported output formats",
+                "type": "string",
+                "name": "supported_formats",
+                "extends_schema": false
+              }
+            ]
+          }
+        ],
+        "extended_output_schema": [
+          {
+            "label": "Response",
+            "type": "object",
+            "name": "result",
+            "extends_schema": false,
+            "properties": [
+              {
+                "control_type": "number",
+                "label": "Question max chars",
+                "type": "integer",
+                "name": "question_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Answer max chars",
+                "type": "integer",
+                "name": "answer_max_chars",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Distractors required",
+                "type": "integer",
+                "name": "distractors_required",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions min",
+                "type": "integer",
+                "name": "questions_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Questions max",
+                "type": "integer",
+                "name": "questions_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit min (seconds)",
+                "type": "integer",
+                "name": "time_limit_min",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "number",
+                "label": "Time limit max (seconds)",
+                "type": "integer",
+                "name": "time_limit_max",
+                "extends_schema": false,
+                "parse_output": "integer_conversion"
+              },
+              {
+                "control_type": "text",
+                "label": "Valid points values",
+                "type": "string",
+                "name": "valid_points",
+                "extends_schema": false
+              },
+              {
+                "control_type": "text",
+                "label": "Supported output formats",
+                "type": "string",
+                "name": "supported_formats",
+                "extends_schema": false
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "config": [
+    {
+      "keyword": "application",
+      "provider": "workato_skill",
+      "account_id": null
+    },
+    {
+      "keyword": "application",
+      "provider": "py_eval",
+      "account_id": null
+    }
+  ]
+}
