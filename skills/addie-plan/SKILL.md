@@ -2,7 +2,7 @@
 name: addie-plan
 description: Use when planning a Workato async self-paced e-learning course (Workato Academy Rise 360 format). Wraps the ETT team's ADDIE Prompt Pipeline (Amelia Blevins) — 11 prompts embedded as files in `prompts/`. Tells you which prompt to run at which ADDIE phase (Project Prep → Analyze → Design → Develop → SME Feedback) and invokes `the-once-over` at quality gates between phases. Prompts are snapshotted from Confluence; an opt-in sync path lets users refresh against the canonical Workato ETT space when needed. For instructor-led workshop courses (1-day workshops, World of Workato sessions), use `wow-plan` instead. Locked 2026-06-03; addie-plan pivoted to embed-and-sync 2026-06-04.
 metadata:
-  version: "1.1"
+  version: "1.2"
 ---
 
 # addie-plan
@@ -149,7 +149,7 @@ At each phase gate, write your output to the appropriate file and open a fresh c
 4. `04-needs-analysis.md` → Course Strategy Document (consumes world.md)
 5. `05-audience-profile.md` → Audience Profile (consumes 4 + Customer Voice from world.md)
 
-> **→ Phase gate.** Write needs analysis + audience profile to `course.md`. Run `the-once-over` (pillars: `fact-check`, `say-it-plain`, `complete-check`). Append findings to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
+> **→ Phase gate.** Write needs analysis + audience profile to `course.md`. Invoke `the-once-over` in **gate mode** (pillars: `fact-check`, `say-it-plain`, `complete-check`). Gate mode means: single pillar fail = overall fail, block advance. If it fails, take the Coach recommendations, fix the artifact in this conversation, re-run the gate. Iterate until clean. Append final gate result to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
 
 ---
 
@@ -158,7 +158,7 @@ At each phase gate, write your output to the appropriate file and open a fresh c
 6. `06-learning-objectives.md` → LO set (consumes course.md)
 7. `07-detailed-outline.md` → Module outline (consumes 6 + course.md + world.md GA deps)
 
-> **→ Phase gate.** Append LOs + outline to `course.md` (it now contains the complete course design). Run `the-once-over` (pillars: `calibrate-challenge`, `say-it-plain`). Append findings to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
+> **→ Phase gate.** Append LOs + outline to `course.md` (it now contains the complete course design). Invoke `the-once-over` in **gate mode** (pillars: `calibrate-challenge`, `say-it-plain`). If it fails, fix and re-run in this conversation until clean. Append final gate result to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
 
 ---
 
@@ -168,7 +168,7 @@ At each phase gate, write your output to the appropriate file and open a fresh c
 9. `09-knowledge-checks.md` → Assessment questions (consumes course.md)
 10. `10-storyboarding.md` → Rise 360 production blueprint (consumes 8 + course.md)
 
-> **→ Phase gate.** Write all three outputs to `build.md`. Run `the-once-over` on each artifact (see pillar subsets in Step 3). Append findings to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
+> **→ Phase gate.** Write all three outputs to `build.md`. Invoke `the-once-over` in **gate mode** on each artifact (see pillar subsets in Step 3). Fix and re-run each failing artifact in this conversation until clean before moving on. Append final gate results to `log.md` and update CURRENT STATE. Then: **close this conversation and open a new one.**
 
 ---
 
@@ -176,13 +176,17 @@ At each phase gate, write your output to the appropriate file and open a fresh c
 
 11. `11-sme-feedback.md` → Cross-cutting; runs whenever SME review lands on any deliverable in build.md
 
-> **→ Final gate.** Update `build.md` with SME-revised content. Append to `log.md` and update CURRENT STATE to `phase: Complete`. Run `the-once-over` on affected artifacts (full re-run). Then open a final conversation for Rise 360 assembly prep.
+> **→ Final gate.** Update `build.md` with SME-revised content. Invoke `the-once-over` in **gate mode** on affected artifacts (full re-run). Fix and re-run until clean. Append to `log.md` and update CURRENT STATE to `phase: Complete`. Then open a final conversation for Rise 360 assembly prep.
 
 ---
 
 ### Step 3 — Invoke `the-once-over` at phase gates
 
-After each ADDIE phase produces its artifact, invoke `the-once-over` (the Standards Desk evaluator) on that artifact. Pillar subsets per artifact:
+After each ADDIE phase produces its artifact, invoke `the-once-over` in **gate mode** — this is a workflow gate, not an advisory review. Signal gate mode by telling the-once-over: "this is a phase gate invoked by addie-plan workflow."
+
+**Gate mode behavior:** single pillar fail = overall fail, pipeline blocked. The skill returns a verdict + Coach recommendations. Take the recommendations, fix the artifact in the same conversation, re-run the gate. Iterate until all pillars pass. Only then write the output file and close the conversation.
+
+Pillar subsets per artifact:
 
 | Phase output | Pillars `the-once-over` runs |
 |---|---|
@@ -194,7 +198,7 @@ After each ADDIE phase produces its artifact, invoke `the-once-over` (the Standa
 | Storyboards (Develop) | `complete-check`, `team-style-guide` |
 | SME-revised drafts | Full re-run on the affected artifacts |
 
-A fail at any gate sends the artifact back to its producing prompt with the Coach recommendations. Don't advance to the next phase until the current artifact passes.
+A fail at any gate sends the artifact back for revision in the same conversation. Don't advance to the next phase, close the conversation, or write to the output file until the gate passes clean.
 
 ### Step 4 — End of pipeline
 
