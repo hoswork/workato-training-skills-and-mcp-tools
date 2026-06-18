@@ -38,3 +38,22 @@ cd mcp/<server>/workato && workato push --restart-recipes
 ## AVOID
 
 `mcp__workato-dev-api__post_api_collections_api_endpoints` — poisons the MCP tool list. (PSM-21498)
+
+## Skill vs MCP decision rule
+
+Before building anything new, decide which archetype it is:
+
+| Archetype | Pattern | Example |
+|---|---|---|
+| **Consumer skill** | Calls many MCPs + reasons over results; runs in the user's Claude session with their credentials | brief-me, addie-plan, wow-plan |
+| **Provider MCP** | Exposes a deterministic, credential-free operation to clients; deployed as a Workato recipe | standards-desk, kahoot-generator, qr-code |
+| **Static validator** | Runs locally on Claude Code; zero LLM tokens; TypeScript/Python linter against §Static checks | the-once-over (Code path) |
+
+**Should it be an MCP server?** Only if:
+1. The operation is deterministic and stateless (same input → same output every time)
+2. It does NOT require the calling user's personal credentials (Jira, Gmail, Gong, Slack, Drive are all personal-auth — these can't be shared service accounts without a significant IT decision)
+3. Any user, not just the author, would get the same result
+
+**Brief-me is the canonical counter-example.** It consumes 6+ authenticated MCP servers (Jira, Drive, Snowflake, Gong, Gmail, Slack) — all personal-auth. It can never be a provider MCP because there is no shared credential that works for all users. It is a consumer skill.
+
+**Standards-desk is the canonical provider example.** Static checks run against the artifact itself — no user credentials needed. Any user gets the same result from the same input. Deterministic, shareable, appropriate for a backend recipe.
