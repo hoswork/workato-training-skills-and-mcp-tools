@@ -1,0 +1,44 @@
+[
+  {
+    "name": "say-it-plain",
+    "description": "Catches jargon, hype, and marketing-speak in training content",
+    "checks_for": "Banned phrases, superlatives, feature-name constructions, AI-slop sincerity tells, passive voice",
+    "audiences": ["training", "education", "workato"],
+    "has_variant": true
+  },
+  {
+    "name": "fact-check",
+    "description": "Verifies product claims, GA dates, and PM attribution",
+    "checks_for": "Feature GA dates, FDE cookbook alignment, PM attribution, roadmap accuracy",
+    "audiences": ["training", "education"],
+    "has_variant": true
+  },
+  {
+    "name": "stick-check",
+    "description": "Evaluates stickiness — whether content will be remembered and applied",
+    "checks_for": "Concrete examples, narrative arc, stickiness principles (Simple, Unexpected, Concrete, Credible, Emotional, Story)",
+    "audiences": ["training", "education", "workato"],
+    "has_variant": false
+  },
+  {
+    "name": "calibrate-challenge",
+    "description": "Checks difficulty calibration and prerequisite assumptions",
+    "checks_for": "Assumed knowledge, scaffolding, pacing, ILT vs e-learning calibration",
+    "audiences": ["training", "education"],
+    "has_variant": true
+  },
+  {
+    "name": "delight-check",
+    "description": "Evaluates engagement, game beats, and delight principles",
+    "checks_for": "Delight principles, imperfection-as-feature opportunities, game beat quality, authentic challenge",
+    "audiences": ["training", "education", "workato"],
+    "has_variant": false
+  },
+  {
+    "name": "team-style-guide",
+    "description": "Enforces Workato training team style conventions",
+    "checks_for": "Banned terms, naming conventions, banned verbs, formatting rules, team-specific carve-outs",
+    "audiences": ["training", "education"],
+    "has_variant": true
+  }
+]

@@ -1,49 +1,43 @@
 # workato-training-mcp — Claude context
 
-Monorepo for Workato training team MCP servers. Each subdirectory is a self-contained MCP project with its own Workato RCLM project, skill, and MCP server.
+Monorepo for Workato training team MCP servers. Each subdirectory is a self-contained MCP project with its own Workato project, recipe(s), and MCP server.
 
 ## MCP projects
 
-| Directory | MCP server | What it does |
-|---|---|---|
-| `qr-code/` | Workato-branded QR code generator | Generates PNG QR codes via Python snippet |
-| `kahoot-generator/` | Kahoot quiz generator | Generates Kahoot-importable CSV from any learning artifact |
-| `standards-desk/` | Standards Desk static checker | `list_pillars` · `get_rubrics` · `run_static_checks` |
+| Directory | What it does |
+|---|---|
+| `qr-code/` | Generates Workato-branded QR codes as base64 PNG |
+| `kahoot-generator/` | Validates and formats Kahoot quizzes as XLSX |
+| `standards-desk/` | Standards Desk pillar checks — `list_pillars`, `get_rubrics`, `run_static_checks` |
 
-## Shared infrastructure patterns
+## Standard project layout
 
-### Auth
+Every project follows this structure:
 
-Dev API auth token (all projects use the same pattern):
-```bash
-AUTH=$(jq -r '.mcpServers["workato-dev-api"].env.AUTH_HEADER' ~/.mcp.json)
+```
+<project>/
+  CLAUDE.md                ← maintainer notes (minimal)
+  mcp-server-prompt.md     ← MCP server description + tool descriptions (registration source of truth)
+  content/                 ← content served by tools (markdown files, JSON)
+  cli/                     ← Python source (source of truth for recipe snippets)
+  workato/                 ← recipe JSON + .workatoenv
 ```
 
-### Push workflow (per project)
+**Three audiences for each file:**
+- `CLAUDE.md` → maintainer / Claude Code working on the code
+- `mcp-server-prompt.md` → MCP clients (server description + tool descriptions get registered via Dev API)
+- `content/` → end-user responses (what tools return — rubrics, metadata)
 
-Each project has its own `workato/` directory with its own `.workatoenv`. Always push from inside that directory:
+## Push workflow
+
+Each project is isolated — push only affects its own recipes and MCP server:
 
 ```bash
 cd <project>/workato && workato push --restart-recipes
+# Then re-assign tools to the MCP server via Dev API (push clears assignments)
+# Tool descriptions come from mcp-server-prompt.md
 ```
-
-After every push, re-assign the skill to the MCP server — the platform CLI does NOT maintain tool assignments across pushes. See each project's `CLAUDE.md` for the specific re-assign command.
-
-### Known platform CLI gaps (apply to all projects)
-
-- `workato push` does NOT apply `tools[].description` in MCP server JSON — set via Dev API after push
-- `workato push` does NOT maintain MCP tool assignments — always re-assign after push
-- The `wkt_token` is not stored in local JSON — fetch via Dev API dynamically, never hardcode
-- Recipe must be running before the MCP tool can be invoked
-
-### Adding a new MCP project
-
-1. Create `<project-name>/` directory
-2. Add `<project-name>/workato/` with a `.workatoenv` pointing to the right Workato workspace + project
-3. Add `<project-name>/CLAUDE.md` with project-specific IDs, endpoints, and test commands
-4. Add `<project-name>/README.md` for humans
-5. Update the projects table in this file
 
 ## AVOID
 
-`mcp__workato-dev-api__post_api_collections_api_endpoints` — broken JSON Schema poisons the MCP tool list for the entire session. All other Dev API tools are safe.
+`mcp__workato-dev-api__post_api_collections_api_endpoints` — poisons the MCP tool list. All other Dev API tools are safe. (PSM-21498)
