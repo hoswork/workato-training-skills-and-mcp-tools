@@ -1,43 +1,40 @@
-# workato-training-mcp — Claude context
+# workato-training-skills-and-mcp-tools
 
-Monorepo for Workato training team MCP servers. Each subdirectory is a self-contained MCP project with its own Workato project, recipe(s), and MCP server.
+Monorepo for Workato training team Claude skills and MCP servers.
 
-## MCP projects
-
-| Directory | What it does |
-|---|---|
-| `qr-code/` | Generates Workato-branded QR codes as base64 PNG |
-| `kahoot-generator/` | Validates and formats Kahoot quizzes as XLSX |
-| `standards-desk/` | Standards Desk pillar checks — `list_pillars`, `get_rubrics`, `run_static_checks` |
-
-## Standard project layout
-
-Every project follows this structure:
+## Structure
 
 ```
-<project>/
-  CLAUDE.md                ← maintainer notes (minimal)
-  mcp-server-prompt.md     ← MCP server description + tool descriptions (registration source of truth)
-  content/                 ← content served by tools (markdown files, JSON)
-  cli/                     ← Python source (source of truth for recipe snippets)
-  workato/                 ← recipe JSON + .workatoenv
+pillars/        ← canonical Standards Desk pillar rubrics (source of truth)
+skills/         ← Claude Code/Desktop skill source files
+mcp/            ← Workato MCP server implementations
+  standards-desk/
+  qr-code/
+  kahoot-generator/
+pipeline/       ← build + sync tooling
+  sync_pipeline.py   (pillar sync: canonical → skills + MCP)
+  Makefile           (make build / test / deploy-skills / deploy-mcp)
 ```
 
-**Three audiences for each file:**
-- `CLAUDE.md` → maintainer / Claude Code working on the code
-- `mcp-server-prompt.md` → MCP clients (server description + tool descriptions get registered via Dev API)
-- `content/` → end-user responses (what tools return — rubrics, metadata)
+## When a pillar changes
 
-## Push workflow
-
-Each project is isolated — push only affects its own recipes and MCP server:
+Edit `pillars/<pillar>.md` → pre-commit hook runs tests → commit → run pipeline:
 
 ```bash
-cd <project>/workato && workato push --restart-recipes
-# Then re-assign tools to the MCP server via Dev API (push clears assignments)
-# Tool descriptions come from mcp-server-prompt.md
+make sync          # dry run: diff + build + test + changelog
+make deploy-skills # Gate 1: skill zips + Confluence
+make deploy-mcp    # Gate 2: Workato push + MCP re-assign
+```
+
+## MCP servers
+
+Each server in `mcp/` has its own isolated Workato project. Push to one doesn't affect others.
+
+```bash
+cd mcp/<server>/workato && workato push --restart-recipes
+# Then re-assign tools via Dev API — push clears assignments
 ```
 
 ## AVOID
 
-`mcp__workato-dev-api__post_api_collections_api_endpoints` — poisons the MCP tool list. All other Dev API tools are safe. (PSM-21498)
+`mcp__workato-dev-api__post_api_collections_api_endpoints` — poisons the MCP tool list. (PSM-21498)

@@ -27,12 +27,13 @@ import os, sys, json, re, subprocess, hashlib
 from pathlib import Path
 import datetime
 
-ROOT = Path(__file__).parent.parent
-CANONICAL_DIR = Path.home() / ".claude/skills/the-once-over/pillars"
-CONTENT_DIR = ROOT / "content/pillars"
-CLI_DIR = ROOT / "cli"
+ROOT = Path(__file__).parent.parent          # repo root
+CANONICAL_DIR = ROOT / "pillars"             # canonical pillar source
+CONTENT_DIR = ROOT / "mcp/standards-desk/content/pillars"
+SKILL_PACKAGES_PILLARS = ROOT / "skills/the-once-over/pillars"
+CLI_DIR = ROOT / "mcp/standards-desk/cli"
 FIXTURES_DIR = CLI_DIR / "test_fixtures"
-SKILL_PACKAGES = Path.home() / "code/skill-packages"
+SKILL_PACKAGES = Path.home() / "code/skill-packages"  # legacy — remove after migration
 
 PILLARS = [
     "say-it-plain", "fact-check", "stick-check",
