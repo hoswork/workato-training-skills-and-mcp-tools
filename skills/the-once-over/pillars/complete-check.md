@@ -7,7 +7,7 @@ description: Use when shipping or reviewing a training artifact — lab guide, s
 
 A pass that runs the **mechanical presence-check** on a training artifact. Every required element accounted for; every required element in the right slot. Yes/no checks, no judgment calls.
 
-Source: the per-artifact required-element rules from `Lab Guide Standards §5.5` and `Presentation Content Standards §3`. This skill is the human-facing version; a companion `html-lab-rules.yaml` is the machine-facing version. They are kept in sync.
+Source: the per-artifact required-element rules from `Lab Guide Standards §5.5`, `Presentation Content Standards §3`, the v2 GUTENBERG/Ghost cascade's added Hook/Walkthrough/Takeaway/`stats[]`-ban rules, and the `html-lab-rules.yaml` machine ruleset. This skill is the human-facing version; the YAML is the machine-facing version. They are kept in sync.
 
 ## When to invoke
 
@@ -140,7 +140,7 @@ Source: `Presentation Content Standards §3` (required slides), §5 (content den
 - [ ] Workato logo on all non-title slides (bottom-left)
 - [ ] No `stats[]`-style stat-grid components (form-level hype ban; see `Presentation Content Standards §13.0.1`)
 
-**Per-slide content shape:**
+**Per-slide content shape** (backpropped from slides-harness `specs/done/012-content-quality-heuristics` 2026-05-27):
 
 - [ ] **Each slide has a clear headline** — a title that names the takeaway, not a topic label. *"Genies fail silently in async sync"* beats *"Async Sync Failure Modes."*
 - [ ] **One concept per slide** — heuristic: if the slide has ≥2 distinct headings (h2 + h3) introducing separate concepts, it's two slides hiding as one.
@@ -150,7 +150,7 @@ Source: `Presentation Content Standards §3` (required slides), §5 (content den
 
 ### 1.3 Course plan
 
-Source: `wow-plan` skill output requirements.
+Source: `wow-plan` skill output requirements + brain `Planning - Brief, Tier Framework, Preview.md`.
 
 A course plan is a markdown document that an author or planner produces *before* lab and deck authoring begins. Two consumer artifacts: the **Abstract** (short marketing blurb) and the **Detailed outline** (modules → labs/sessions → objectives → time allocations).
 
@@ -287,7 +287,7 @@ Before walking the per-artifact checklist, these patterns are usually present an
 
 - **All other pillars run first.** Completeness is the mechanical end-gate. If an artifact fails calibrate-challenge or stick-check or say-it-plain, fix those first; complete-check after.
 - **Style — surface (`team-style-guide`).** Some completeness items (alt text, callout class names, frontmatter shape) overlap with surface-style rules. The two skills are siblings; either can run them, but complete-check is canonical for "is it present?" while team-style-guide is canonical for "is it the right format?".
-- **Operationalization in `html-lab-rules.yaml`.** The lab guide checklist (§1.1) is mirrored as machine-readable rules in a companion `html-lab-rules.yaml` file. The two are kept in sync; the YAML is what Lab Buddy / DoubleChecker / Ghost (Bakery profile) reads at runtime.
+- **Operationalization in `html-lab-rules.yaml`.** The lab guide checklist (§1.1) is mirrored as machine-readable rules in `~/brain/10 Initiatives/Rainbow Cake/10 Components/html-lab-rules.yaml`. The two are kept in sync; the YAML is what Lab Buddy / DoubleChecker / Ghost (Bakery profile) reads at runtime.
 
 ## What this skill is NOT
 

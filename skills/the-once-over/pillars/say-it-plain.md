@@ -12,7 +12,7 @@ Plain, direct, honest professional prose. The skill catches hype at **two levels
 
 **Form-level is the foundation.** Most professional writers have already learned to avoid "leverage" and "world-class" — they default instead to drama-framed labels, aphoristic contrast, and feature-name constructions without noticing. The form-level pass is where this skill earns its keep.
 
-Renamed from `de-hype` on 2026-05-19, then from `say-it-straight` on 2026-06-03 — the rules are unchanged across renames.
+Source: Heiwad's slides-harness validation rules + the 2026-05-27 GUTENBERG/Ghost cascade that promoted form-level hype to a peer of the lexical pass. Renamed from `de-hype` on 2026-05-19, then from `say-it-straight` on 2026-06-03 — the rules are unchanged across renames.
 
 ## When to invoke
 
@@ -506,5 +506,5 @@ These phrases would normally trip the superlative / unsubstantiated-claim checks
 
 - Not a grammar checker — leave that to writing-clearly skills or human review.
 - Not a slide formatter — `no_period_on_bullets`, `title_case_titles`, font sizes belong in the slides skill.
-- Not an authority on Workato product terms — that's `team-style-guide` §8 (Required spellings).
+- Not an authority on Workato product terms — that's `required_spellings` in the slides-harness terminology rules.
 - Not a humor or voice guide — humor's allowed, just earned.

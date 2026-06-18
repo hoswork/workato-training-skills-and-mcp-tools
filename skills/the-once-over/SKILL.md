@@ -2,7 +2,7 @@
 name: the-once-over
 description: Use to give a Workato training artifact a comprehensive review against The Standards Desk pillars — lab guide, slide deck, course plan, course abstract, Knowledge Check, course bundle, game/interactive activity, anything readable. **Self-contained** — bundles all pillar rubrics in `pillars/` (`fact-check`, `calibrate-challenge`, `delight-check`, `stick-check`, `say-it-plain`, `team-style-guide`, `complete-check`). Routes the artifact through each, returns a verdict (which pillars passed / failed) plus recommendations (what to change and why). Bundles the Standards Desk's Gatekeeper (verdict) and Coach (iteration) roles into a single pass for solo authors. Locked 2026-06-03.
 metadata:
-  version: "1.4"
+  version: "1.5"
 ---
 
 # the-once-over
@@ -81,23 +81,6 @@ Skip when:
 | **Bug report** (any bug-tracking system) | `fact-check`, `say-it-plain` (§1 + §2 + §3 Bug-report register), `complete-check` (§1.6) — for Workato CCE filings specifically, use `file-workato-product-bug` workflow skill which composes this routing |
 
 If the artifact type isn't listed, default to `say-it-plain` + the artifact-fit subset from the routing table above.
-
-### Step 1b — Apply the two-tier execution model
-
-Before running full reasoning, apply the static tier first. Each pillar file contains a `## Check classification` section that lists what's static vs. reasoning — read that section to know what belongs where.
-
-**In Claude Code (Bash available):**
-
-- For **slide decks**: if the `slide-check` plugin is installed, run `npx tsx ${CLAUDE_PLUGIN_ROOT_SLIDE_CHECK}/tools/static-checker.ts input.json` and collect the static findings. Skip re-running those checks in the reasoning pass.
-- For **all artifact types**: read the `## Check classification → Static checks` list from each pillar in the routing set. Apply those rules mechanically — count words, match patterns, check presence. No inference needed; this is a checklist.
-- **Subagent dispatch (recommended for 3+ pillars):** dispatch each pillar's reasoning pass as a concurrent subagent. Each subagent receives exactly: the artifact text + that pillar's `## Reasoning checks` section. Do not include the static rules or other pillars' content — keep each subagent's context lean. Static findings stay on the main thread; collect only distilled reasoning findings back. This keeps the main thread's context clean for the synthesis pass in Step 3.
-
-**In Claude Desktop (no Bash):**
-
-- Apply the `## Check classification → Static checks` sections as a mechanical checklist (count/match/compare, no interpretation). List findings.
-- Then apply reasoning checks sequentially on the main thread.
-
-Running tiers in sequence — not interleaved — keeps context focused and avoids applying LLM inference to checks that are objectively deterministic.
 
 ### Step 2 — Run each pillar in sequence
 
@@ -261,30 +244,45 @@ pillars/
 
 The execution layer changes which file it points to; the pillar contract stays the same. Migrate to split-file when a pillar's static section is large enough that the subagent loading the full file is noticeably wasteful.
 
-**Static checks in Claude Desktop:** Claude Desktop cannot run a TypeScript linter directly. Options: (1) expose checks as an MCP server tool — works in both Claude Desktop and Claude Code, single implementation; (2) LLM applies the `### Static checks` section as a mechanical checklist — still useful, lower cost than full reasoning. The `### Static checks` label is meaningful in both cases.
+**Static checks — two execution paths (prefer MCP, degrade to reasoning):**
+
+| Surface | Tier 1 static path |
+|---|---|
+| Claude Code | TypeScript linter (zero LLM tokens) — ideal |
+| Claude Cowork + standards-desk MCP | `run_static_checks` Workato tool — mechanical Python, same findings |
+| Claude Cowork (no MCP) | LLM applies `### Static checks` section as a checklist — reasoning, approximate, functional |
+| Claude Desktop Chat | LLM applies `### Static checks` section as a checklist |
+
+When the standards-desk MCP is available, call `run_static_checks(artifact, pillars, audience)` first. Its findings replace the TypeScript linter output — same role, different runner. When it is not available, apply the `### Static checks` section yourself as a mechanical checklist before dispatching Tier 2 subagents. Label the findings `[static-reasoning]` so the Tier 3 synthesis knows they came from LLM approximation rather than deterministic extraction.
 
 Existing pillars will need a pass to adopt this convention. When writing a new pillar, classify each check before writing it.
 
-### Tier 1 — Static pre-pass (TypeScript linter, zero LLM tokens)
+### Tier 1 — Static pre-pass
 
-Reads the `### Static checks` sections from each pillar in the artifact's routing set. Runs deterministic checks: word counts, bullet limits, font size floors, prohibited word lists, required element presence, contrast ratios, Flesch-Kincaid grade level. Returns a structured findings list. Cost: negligible. Tooling: TypeScript (`text-readability` for grade level; no Python dependency).
+Runs deterministic checks: word counts, bullet limits, font size floors, prohibited word lists, required element presence, contrast ratios. Returns a structured findings list.
+
+- **Claude Code:** TypeScript linter reads `### Static checks` sections. Cost: zero LLM tokens.
+- **Claude Cowork (MCP available):** `run_static_checks` Workato tool. Cost: Workato recipe execution, zero LLM tokens.
+- **All other surfaces:** LLM applies `### Static checks` as a checklist before dispatching Tier 2. Cost: input tokens on the checklist pass. Label findings `[static-reasoning]`.
 
 ### Tier 2 — Parallel pillar subagents (orthogonal, concurrent)
 
-Pillars are independent — `fact-check` findings don't depend on `calibrate-challenge` findings. Dispatch concurrently. Each subagent receives: the artifact + the `### Reasoning checks` section of its pillar only. Static findings already captured in Tier 1 are not re-run. Distilled findings return to the main thread; full rubric text stays in the subagent's context.
+Pillars are independent — `fact-check` findings don't depend on `calibrate-challenge` findings. Dispatch concurrently. **Both Claude Code and Claude Cowork support parallel subagent dispatch.** Each subagent receives: the artifact + the `### Reasoning checks` section of its pillar only (fetch via `get_rubrics` MCP if available, else load from `pillars/` directory). Static findings from Tier 1 are not re-run. Distilled findings return to the main thread; full rubric text stays in the subagent's context.
 
 Pillar orthogonality map (safe to run in parallel):
 - Group A: `fact-check`, `calibrate-challenge`, `stick-check`
 - Group B: `delight-check`, `say-it-plain`, `team-style-guide`
 - `complete-check` is mostly static → folds into Tier 1; any remaining judgment calls run as a lightweight subagent
 
+**Claude Desktop Chat** (no subagent dispatch): run pillars sequentially on the main thread. Apply the same section conventions — load only `### Reasoning checks` per pillar, keep context lean.
+
 ### Tier 3 — Main thread synthesis (reasoning on clean context)
 
 Receives only distilled findings from Tiers 1 and 2 — never the full rubric text, never a re-read of the artifact. Context is clean. This is where judgment happens: cascade identification (a form-level problem that makes word-level findings moot), prioritization, and writing recommendations that lead with the smallest set that unblocks shipping.
 
-The quality of this pass is directly proportional to how uncontaminated the context is when it runs.
+The quality of this pass is directly proportional to how uncontaminated the context is when it runs. Note if any Tier 1 findings are `[static-reasoning]` — flag them as approximate in the synthesis.
 
-**Current state:** Runs sequentially on main thread. The architecture above is the target; apply it when subagent dispatch is available and the linter tooling exists.
+**Current state (2026-06):** Parallel subagent dispatch available on Claude Code and Claude Cowork. Standards-desk MCP (`run_static_checks`) is the preferred Tier 1 runner for Cowork users. Static checks degrade to LLM reasoning when the MCP is not configured — functional but higher cost and approximate.
 
 ## How pillar content lives here
 

@@ -139,7 +139,7 @@ For each piece of content (hook, takeaway, scenario, opening, closing), walk the
 
 ## §7. Tactical moves (concrete patterns that activate the framework)
 
-The six checks above are the *framework*. Tactical moves are the *menu* — concrete, named patterns an author can pick up and apply. Each maps to one or more SUCCESs checks.
+The six checks above are the *framework*. Tactical moves are the *menu* — concrete, named patterns an author can pick up and apply. Each maps to one or more SUCCESs checks. Backpropped from slides-harness 2026-05-27 (`specs/done/014-memorability-elements`, `specs/done/015-fake-press-release`, `specs/done/017-narrative-structure-library`).
 
 ### 7.1 Working Backwards (write the outcome first)
 

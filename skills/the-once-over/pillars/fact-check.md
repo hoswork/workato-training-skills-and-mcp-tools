@@ -77,7 +77,7 @@ Workato ships rapidly. A feature claimed by a lab may be:
 
 ### §1.1 Course-module GA dependency tagging (the GA-2-months rule)
 
-For course plans (especially WoW-style instructor-led courses), every module must declare a **`feature_ga_dependency`** field listing which features must be GA before the module can run. This is the GA-2-months rule, a WoW 2026 team standard:
+For course plans (especially WoW-style instructor-led courses), every module must declare a **`feature_ga_dependency`** field listing which features must be GA before the module can run. This is the Ryan Koh GA-2-months rule, named for the team feedback that established it (WoW 2026 build):
 
 > *"For every module we tag the feature that needs to be GA - 2 months."*
 
@@ -126,7 +126,7 @@ The tool accepts a full Atlassian account ID as the search string (not just a na
 
 **Step 3 — Fall back to TBD.** If neither the body nor the user lookup yields a name, record `TBD — check with product team` in the PM column.
 
-**Heuristic for default DRI when a page genuinely has no explicit DRI:** If the same person authors multiple adjacent PMO pages in the same product area (e.g., a PM authors PMO-2078, PMO-2555, PMO-2893 — all under the same product area), they're a strong default-DRI signal for related features that don't have their own DRI lines. Note this signal in the table as `<name> (inferred — adjacent-page DRI signal)` so the inference is auditable.
+**Heuristic for default DRI when a page genuinely has no explicit DRI:** If the same person authors multiple adjacent PMO pages in the same product area (e.g., Bennett Goh authors PMO-2078 Guardrails, PMO-2555 Native Channel, PMO-2893 Evals Phase 1 — all under Agent Studio), they're a strong default-DRI signal for related features that don't have their own DRI lines. Note this signal in the table as `<name> (inferred — adjacent-page DRI signal)` so the inference is auditable.
 
 ### §1.1.2 PM lookup applied — keep one home, not many
 
